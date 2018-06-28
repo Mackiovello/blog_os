@@ -26,7 +26,7 @@ Running on the target architecture allows us to test all hardware specific code 
 [page table]: https://en.wikipedia.org/wiki/Page_table
 [CPU exception]: https://wiki.osdev.org/Exceptions
 
-In this post we will implement a very basic test framework that runs integration tests inside instances of the [QEMU] virtual machine. It is not as realistic as running them on real hardware, but it is much simpler and should be suffient as long as we only use standard hardware that is well supported in QEMU.
+In this post we will implement a very basic test framework that runs integration tests inside instances of the [QEMU] virtual machine. It is not as realistic as running them on real hardware, but it is much simpler and should be sufficient as long as we only use standard hardware that is well supported in QEMU.
 
 [QEMU]: https://www.qemu.org/
 
@@ -187,8 +187,9 @@ Luckily, there is an escape hatch: QEMU supports a special `isa-debug-exit` devi
 -device isa-debug-exit,iobase=0xf4,iosize=0x04
 ```
 
-The `iobase` specifies on which port address the device should live and the `iosize` specifies the port size (`0x04` means four bytes). Now the guest can write a value to the `0xf4` port and QEMU will exit with [exit status] `(passed_value << 1) | 1`.
+The `iobase` specifies on which port address the device should live (`0xf4` is a [generally unused][list of x86 I/O ports] port on the x86's IO bus) and the `iosize` specifies the port size (`0x04` means four bytes). Now the guest can write a value to the `0xf4` port and QEMU will exit with [exit status] `(passed_value << 1) | 1`.
 
+[list of x86 I/O ports]: https://wiki.osdev.org/I/O_Ports#The_list
 [exit status]: https://en.wikipedia.org/wiki/Exit_status
 
 To write to the I/O port, we use the [`x86_64`] crate:
@@ -321,7 +322,7 @@ A better solution is to create an additional executable for each test.
 
 ### Additional Test Executables
 
-Cargo allows to add [additional executables] to a project by putting them inside `src/bin`. We can use that feature to create a separate executable for each unit tests. For example, a `test-something` executable could be added like this:
+Cargo allows to add [additional executables] to a project by putting them inside `src/bin`. We can use that feature to create a separate executable for each integration test. For example, a `test-something` executable could be added like this:
 
 [additional executables]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-project-layout
 
@@ -577,7 +578,7 @@ Such a test runner is useful to many projects, so we decided to add one to the `
 
 The test runner of the `bootimage` tool can be invoked via `bootimage test`. It uses the following conventions:
 
-- All executables starting with `test-` are treated as unit test.
+- All executables starting with `test-` are treated as integration tests.
 - Tests must print either `ok` or `failed` over the serial port. When printing `failed` they can print additional information such as a panic message (in the next lines).
 - Tests are run with a timeout of 1 minute. If the test has not completed in time, it is reported as "timed out".
 
